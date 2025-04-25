@@ -1,0 +1,47 @@
+{
+  "name": "dyplome2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "private": true,
+
+  "stores": {
+    "ATB": {
+      "id": "int",
+      "address": "string"
+    },
+    "METRO": {
+
+    },
+    "SILPO": {
+
+    }
+  },
+  "products": {
+    "id": "int",
+    "name": "string",
+    "barecode": "int",
+    "units": "string",
+    "tags": ["tag1", "tag2"]
+  },
+
+  "products_and_store": {
+    "product_id": "int",
+    "store_id": "int",
+    "price": "float",
+    "old_price": "float",
+    "is_available": "boolean"
+  },
+
+  "receipts": {
+    "rys": {
+      "id": "int",
+      "products_list": [
+
+      ]
+    }
+  }
+}

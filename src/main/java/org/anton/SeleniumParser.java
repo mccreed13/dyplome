@@ -17,7 +17,7 @@ abstract class SeleniumParser implements AutoCloseable {
 
     protected abstract String getName(WebElement e);
 
-    protected abstract String getPrice(WebElement e);
+    protected abstract Float getPrice(WebElement e);
 
     public abstract List<?> getItemsList();
 

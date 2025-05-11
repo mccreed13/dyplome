@@ -4,16 +4,21 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.anton.items.ATBItem;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.List;
 
 public class ATBRequester {
 
-    public ATBRequester() {
+    private String URL;
+
+    public ATBRequester(String url) {
+        this.URL = url;
         try {
             requestBody = getRequestBody();
         } catch (IOException e) {
@@ -31,7 +36,8 @@ public class ATBRequester {
 
     private Elements elements;
 
-    private final String URL = "https://www.atbmarket.com/catalog/294-napoi-bezalkogol-ni";
+//    private final String URL = "https://www.atbmarket.com/catalog/294-napoi-bezalkogol-ni";
+
 
     private String getRequestBody() throws IOException {
         Request request = new Request
@@ -67,11 +73,14 @@ public class ATBRequester {
     private int getMaxPages(){
         Document doc = Jsoup.parse(requestBody);
         Elements el = doc.getElementsByClass("product-pagination__item");
-        return Integer.parseInt(
-                el.get(el.size()-2)
-                .text()
-        );
+        if(!el.isEmpty()){
+            return Integer.parseInt(
+                    el.get(el.size()-2)
+                            .text()
+            );
+        }else return 1;
     }
+
     private void parseElements() throws IOException {
         Elements elements = new Elements();
         for (int i = 1; i <= getMaxPages(); i++) {
@@ -94,24 +103,37 @@ public class ATBRequester {
 
     private static String getName(Element e){
         return e.getElementsByClass("catalog-item__title")
-                .get(0)
+                .getFirst()
                 .getElementsByTag("a")
-                .get(0)
+                .getFirst()
                 .text();
     }
 
     private static String getPrice(Element e) {
         return e.getElementsByClass("catalog-item__bottom")
-                .get(0)
+                .getFirst()
                 .getElementsByClass("product-price__top")
-                .get(0)
+                .getFirst()
                 .val();
     }
 
     private static String getOldPrice(Element e) {
         Elements elements = e.getElementsByClass("catalog-item__bottom")
-                .get(0)
+                .getFirst()
                 .getElementsByClass("product-price__bottom");
-        return (!elements.isEmpty() ? elements.get(0).val() : null);
+        return (!elements.isEmpty() ? elements.getFirst().val() : null);
     }
-}
+
+    public String getUrl(Element e) {
+        return "https://www.atbmarket.com" + e.getElementsByClass("catalog-item__title")
+                .getFirst()
+                .getElementsByTag("a")
+                .getFirst()
+                .attr("href");
+    }
+
+    public List<ATBItem> getItemsList(){
+        return elements.stream()
+                .map(e-> new ATBItem(getUrl(e), getName(e), getPrice(e), getOldPrice(e)))
+                .toList();
+    }}

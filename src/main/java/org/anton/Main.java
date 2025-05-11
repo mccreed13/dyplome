@@ -1,74 +1,125 @@
 package org.anton;
 
-import com.google.gson.Gson;
+import org.anton.items.ATBItem;
+import org.anton.items.BaseItem;
 import org.anton.items.MetroItem;
+import org.anton.items.SilpoItem;
+import org.anton.service.ShopProductService;
+import org.anton.service.UpdatePriceService;
+import org.anton.urls.ATBUrls;
+import org.anton.urls.MetroUrls;
+import org.anton.urls.SilpoUrls;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.List;
 
+
 public class Main {
-    public static void main(String[] args) throws IOException {
-        Gson gson = new Gson();
+    private static final String jdbcUrl = "jdbc:postgresql://localhost:5432/productdb";
+    private static final String username = "postgres";
+    private static final String password = "123456789";
 
-//        ATBRequester requester = new ATBRequester();
-//        requester.printCatalogItems();
-//        int atb = requester.getSize();
-//        System.out.println("ATB: " + atb);
-//
-        try( MetroSelenium selenium = new MetroSelenium() ){
-            int metro = selenium.getSize();
-            System.out.println("Metro: " + metro);
-            List<MetroItem> items = selenium.getItemsList();
-            System.out.println(items.get(0).toString());
-            System.out.println(getBiggestSale(items));
-            System.out.println(getSmallestValue(items));
-//            String jsonItems = gson.toJson(items);
-//            File file = new File("metroItemsDB.json");
-//            JsonWriter jsonWriter = gson.newJsonWriter(new FileWriter(file));
-//            jsonWriter.jsonValue(jsonItems);
-        } catch (Exception ignored) {
-            throw ignored;
+    private static final Connection connection;
+
+    static {
+        try {
+            connection = DriverManager.getConnection(jdbcUrl, username, password);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-//        try (SilpoSelenium silpoSelenium = new SilpoSelenium()) {
-//            silpoSelenium.printCatalogItems();
-//        }
-    }
-    private static MetroItem getSmallestValue(List<MetroItem> items) {
-        MetroItem smallest = items.get(0);
-        float smallestPrice = Float.parseFloat(items.get(0).getPrice());
-        for (MetroItem item : items) {
-            float bufPrice = Float.parseFloat(item.getPrice());
-            if (bufPrice < smallestPrice) {
-                smallestPrice = bufPrice;
-                smallest = item;
-            }
-        }
-        return smallest;
     }
 
-    private static MetroItem getBiggestSale(List<MetroItem> items) {
-        MetroItem biggest = items.get(0);
-        float sale = 0;
-        float fPrice = Float.parseFloat(biggest.getPrice());
-        String sPrice = biggest.getOldPrice();
-        if (sPrice != null) {
-            float sfPrice = Float.parseFloat(sPrice);
-            sale = sfPrice - fPrice;
+    public static void main(String[] args) throws IOException, SQLException, ClassNotFoundException {
+        SilpoSelenium selenium = new SilpoSelenium(SilpoUrls.url_syhari_panirovochni);
+        updateAllPrices(selenium.getItemsList());
+//        selenium.close();
+        connection.close();
+    }
+
+    private static void writeCSV(String fileName, List<? extends BaseItem> list) throws IOException {
+        String[] HEADERS = {"URL", "NAME", "PRICE"};
+        FileWriter sw = new FileWriter(fileName);
+
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
+                .setHeader(HEADERS)
+                .get();
+
+        try (final CSVPrinter printer = new CSVPrinter(sw, csvFormat)) {
+            list.forEach(el -> {
+                try {
+                    printer.printRecord(el.getUrl(), el.getName(), el.getPrice());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         }
-        for (MetroItem item : items) {
-            float sale2 = 0;
-            float fPrice2 = Float.parseFloat(item.getPrice());
-            String sPrice2 = item.getOldPrice();
-            if (sPrice2 != null) {
-                float sfPrice = Float.parseFloat(sPrice2);
-                sale2 = sfPrice - fPrice2;
+    }
+
+    private static void updateAllPricesATB(){
+        ATBUrls.getAllUrls().forEach(url -> {
+            ATBRequester requester = new ATBRequester(url);
+            try {
+                updateAllPrices(requester.getItemsList());
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
-            if (sale2 > sale) {
-                biggest = item;
-                sale = sale2;
+        });
+    }
+
+    private static void updateAllPricesMetro(){
+        MetroUrls.getAllUrls().forEach(url -> {
+            MetroSelenium selenium = new MetroSelenium(url);
+            try {
+                updateAllPrices(selenium.getItemsList());
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
+            selenium.close();
+        });
+    }
+
+    private static void updateAllPricesSilpo(){
+        SilpoUrls.getAllUrls().forEach(url -> {
+            MetroSelenium selenium = new MetroSelenium(url);
+            try {
+                updateAllPrices(selenium.getItemsList());
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            selenium.close();
+        });
+    }
+
+    private static boolean insertAllItems(List<? extends BaseItem> list) {
+        ShopProductService service = new ShopProductService(connection);
+        list.forEach(e -> {
+            try {
+                service.insert(e);
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        return true;
+    }
+
+    private static void updateAllPrices(List<? extends BaseItem> list) throws SQLException {
+        UpdatePriceService service = new UpdatePriceService(connection);
+        if(list.getFirst() instanceof ATBItem) {
+            service.insert(list, Brands.ATB);
+        }else if(list.getFirst() instanceof MetroItem) {
+            service.insert(list, Brands.METRO);
+        }else if(list.getFirst() instanceof SilpoItem) {
+            service.insert(list, Brands.SILPO);
+        }else {
+            System.out.println("Unknown item brand");
         }
-        return biggest;
+
     }
 }
 

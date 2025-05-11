@@ -8,7 +8,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import java.util.List;
 
 public class MetroSelenium extends SeleniumParser {
-    private final String URL = "https://shop.metro.ua/shop/category/%D0%BF%D1%80%D0%BE%D0%B4%D1%83%D0%BA%D1%82%D0%B8/%D1%85%D0%BE%D0%BB%D0%BE%D0%B4%D0%BD%D1%96-%D0%BD%D0%B0%D0%BF%D0%BE%D1%97/%D1%81%D0%BE%D0%BB%D0%BE%D0%B4%D0%BA%D1%96-%D0%BD%D0%B0%D0%BF%D0%BE%D1%97";
+//    private final String URL = "https://shop.metro.ua/shop/category/%D0%BF%D1%80%D0%BE%D0%B4%D1%83%D0%BA%D1%82%D0%B8/%D0%BC%E2%80%99%D1%8F%D1%81%D0%BE-%D1%82%D0%B0-%D0%BF%D1%82%D0%B8%D1%86%D1%8F/%D1%81%D0%B2%D1%96%D0%B6%D0%B5-%D0%BC'%D1%8F%D1%81%D0%BE/%D0%BA%D1%83%D1%80%D1%8F%D1%82%D0%B8%D0%BD%D0%B0";
 
     private final String paginationItemBy = "pull-right";
     private final String buttonMoreBy = "mfcss_load-more-articles";
@@ -18,16 +18,16 @@ public class MetroSelenium extends SeleniumParser {
     private final String nameInCardBy = "title";
     private final String mainPriceInCardBy = "primary";
     private final String oldPriceInCardBy = "strike-through";
+    private final String isAvailableBy = "ex-delivery-store";
 
-    private final String urlBy = "price";
     List<WebElement> items;
 
-    public MetroSelenium() {
+    public MetroSelenium(String url) {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("user-data-dir=D:\\TEST\\Profile 10");
         options.addArguments("--profile-directory=Profile 10");
         driver = new ChromeDriver(options);
-        driver.get(URL);
+        driver.get(url);
         try {
             Thread.sleep(5000);
             JavascriptExecutor js = (JavascriptExecutor) driver;
@@ -69,12 +69,12 @@ public class MetroSelenium extends SeleniumParser {
     @Override
     public String getUrl(WebElement e) {
         List<WebElement> elements = e.findElements(By.className(nameInCardBy));
-        return (!elements.isEmpty() ? "https://shop.metro.ua"+elements.get(0).getDomAttribute("href") : null);
+        return (!elements.isEmpty() ? "https://shop.metro.ua"+elements.getFirst().getDomAttribute("href") : null);
     }
 
     public List<MetroItem> getItemsList(){
         return webElements.stream()
-                .map(e-> new MetroItem(getUrl(e), getName(e), getPrice(e), getOldPrice(e)))
+                .map(e-> new MetroItem(getUrl(e), getName(e), getPrice(e), getOldPrice(e), getAvailability(e)))
                 .toList();
     }
 
@@ -85,21 +85,32 @@ public class MetroSelenium extends SeleniumParser {
     }
 
     @Override
-    public String getPrice(WebElement e) {
+    public Float getPrice(WebElement e) {
         return parseMainPrice(e.findElement(By.className(mainPriceInCardBy))
                 .getText());
     }
 
-    private String parseMainPrice(String price){
-        return price.split(" ")[3].replaceAll(",", ".");
+    public Boolean getAvailability(WebElement e) {
+        String available = "AVAILABLE";
+        String unavailable = "UNAVAILABLE";
+        WebElement el = e.findElement(By.className(isAvailableBy));
+        if (!el.findElements(By.className(available)).isEmpty()) {
+            return true;
+        }else if (!el.findElements(By.className(unavailable)).isEmpty()) {
+            return false;
+        }
+        return null;
+    }
+    private Float parseMainPrice(String price){
+        return Float.valueOf(price.split(" ")[3].replaceAll(",", "."));
     }
 
-    private String parseOldPrice(String price){
-        return price.split(" ")[0].replaceAll(",", ".");
+    private Float parseOldPrice(String price){
+        return Float.valueOf(price.split(" ")[0].replaceAll(",", "."));
     }
 
-    private String getOldPrice(WebElement e) {
+    private Float getOldPrice(WebElement e) {
         List<WebElement> elements = e.findElements(By.className(oldPriceInCardBy));
-        return (!elements.isEmpty() ? parseOldPrice(elements.get(0).getText()) : null);
+        return (!elements.isEmpty() ? parseOldPrice(elements.getFirst().getText()) : null);
     }
 }

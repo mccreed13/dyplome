@@ -1,20 +1,14 @@
 package org.anton.items;
 
-public class MetroItem extends BaseItem{
-    private Boolean isAvailable;
+public class ATBItem extends BaseItem{
 
-    public MetroItem(String url, String name, Float price, Float oldPrice, Boolean isAvailable) {
+    public ATBItem(String url, String name, String price, String oldPrice) {
         super(url, name, price, oldPrice);
-        this.isAvailable = isAvailable;
-    }
-
-    public Boolean isAvailable() {
-        return isAvailable;
     }
 
     @Override
     public String toString() {
-        return "MetroItem {" +
+        return "ATBItem {" +
                 " url='" + url + '\'' +
                 ", name='" + name + '\'' +
                 ", price=" + price +

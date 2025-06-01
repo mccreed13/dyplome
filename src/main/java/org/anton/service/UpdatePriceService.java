@@ -67,8 +67,12 @@ public class UpdatePriceService {
             if(unitsString != null) {
                 Units units = Units.valueOf(unitsString);
                 if(units.equals(Units.KILOGRAMS) && ((SilpoItem) item).getUnits().equals(Units.GRAMS)){
-                    price*=10;
-                    old_price*=10;
+                    if(price != null) {
+                        price*=10;
+                    }
+                    if(old_price != null) {
+                        old_price*=10;
+                    }
                 }
             }
         }

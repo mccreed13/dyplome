@@ -29,6 +29,57 @@ public class SilpoSelenium extends SeleniumParser{
         options.addArguments("user-data-dir=D:\\TEST\\Profile 10");
         options.addArguments("--profile-directory=Profile 10");
         driver = new ChromeDriver(options);
+        goUrl(url);
+//        driver.get(url);
+//        try {
+//            Thread.sleep(5000);
+//            JavascriptExecutor js = (JavascriptExecutor) driver;
+//            js.executeScript("window.scrollTo(0,document.body.scrollHeight-1500)");
+//            List<WebElement> elements = driver.findElements(By.className(paginationItemBy));
+//            List<WebElement> el = driver.findElements(By.xpath(buttonMoreBy));
+//            if (!elements.isEmpty()) {
+//                String maxPage = elements.getLast().getText();
+//                if (!el.isEmpty()) {
+//                    el.getFirst().click();
+//                }
+//                Thread.sleep(5000);
+//                String textUrl = driver.getCurrentUrl();
+//                System.out.println(maxPage);
+//                String currentPage = textUrl.substring(textUrl.lastIndexOf("=")+1);
+//                while (!maxPage.equals(currentPage)) {
+//                    textUrl = driver.getCurrentUrl();
+//                    currentPage = textUrl.substring(textUrl.lastIndexOf("=")+1);
+//                    js.executeScript("window.scrollTo(0,document.body.scrollHeight-1500)");
+//                    Thread.sleep(3000);
+//                }
+//            }
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+//        parseElements();
+    }
+
+    @Override
+    protected void parseElements() {
+        webElements = driver.findElements(By.className(cardElementBy));
+    }
+
+    public void printCatalogItems() {
+        System.out.println(webElements.size());
+        webElements.forEach(c-> {
+            System.out.println(getName(c));
+            System.out.println("Price:" + getPrice(c));
+            System.out.println("Old price:" + getOldPrice(c));
+        });
+    }
+
+    @Override
+    public String getUrl(WebElement e) {
+        return (e!=null ? "https://silpo.ua"+e.getDomAttribute("href") : null);
+    }
+
+    @Override
+    public void goUrl(String url) {
         driver.get(url);
         try {
             Thread.sleep(5000);
@@ -56,25 +107,6 @@ public class SilpoSelenium extends SeleniumParser{
             throw new RuntimeException(e);
         }
         parseElements();
-    }
-
-    @Override
-    protected void parseElements() {
-        webElements = driver.findElements(By.className(cardElementBy));
-    }
-
-    public void printCatalogItems() {
-        System.out.println(webElements.size());
-        webElements.forEach(c-> {
-            System.out.println(getName(c));
-            System.out.println("Price:" + getPrice(c));
-            System.out.println("Old price:" + getOldPrice(c));
-        });
-    }
-
-    @Override
-    public String getUrl(WebElement e) {
-        return (e!=null ? "https://silpo.ua"+e.getDomAttribute("href") : null);
     }
 
     @Override

@@ -18,18 +18,7 @@ public class ATBRequester {
     private String URL;
 
     public ATBRequester(String url) {
-        this.URL = url;
-        try {
-            requestBody = getRequestBody();
-        } catch (IOException e) {
-            throw new RuntimeException("Request failed ", e);
-        }
-
-        try {
-            parseElements();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        goUrl(url);
     }
 
     private String requestBody;
@@ -136,4 +125,20 @@ public class ATBRequester {
         return elements.stream()
                 .map(e-> new ATBItem(getUrl(e), getName(e), getPrice(e), getOldPrice(e)))
                 .toList();
-    }}
+    }
+
+    public void goUrl(String url){
+        this.URL = url;
+        try {
+            requestBody = getRequestBody();
+        } catch (IOException e) {
+            throw new RuntimeException("Request failed ", e);
+        }
+
+        try {
+            parseElements();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}

@@ -27,6 +27,30 @@ public class MetroSelenium extends SeleniumParser {
         options.addArguments("user-data-dir=D:\\TEST\\Profile 10");
         options.addArguments("--profile-directory=Profile 10");
         driver = new ChromeDriver(options);
+        goUrl(url);
+    }
+
+    protected void parseElements(){
+        webElements = driver.findElements(By.className(cardElementBy));
+    }
+
+    public void printCatalogItems() {
+        System.out.println(webElements.size());
+                webElements.forEach(c-> {
+                    System.out.println(getName(c));
+                    System.out.println("Price:" + getPrice(c));
+                    System.out.println("Old price:" + getOldPrice(c));
+                });
+    }
+
+    @Override
+    public String getUrl(WebElement e) {
+        List<WebElement> elements = e.findElements(By.className(nameInCardBy));
+        return (!elements.isEmpty() ? "https://shop.metro.ua"+elements.getFirst().getDomAttribute("href") : null);
+    }
+
+    @Override
+    public void goUrl(String url) {
         driver.get(url);
         try {
             Thread.sleep(5000);
@@ -51,25 +75,6 @@ public class MetroSelenium extends SeleniumParser {
             throw new RuntimeException(e);
         }
         parseElements();
-    }
-
-    protected void parseElements(){
-        webElements = driver.findElements(By.className(cardElementBy));
-    }
-
-    public void printCatalogItems() {
-        System.out.println(webElements.size());
-                webElements.forEach(c-> {
-                    System.out.println(getName(c));
-                    System.out.println("Price:" + getPrice(c));
-                    System.out.println("Old price:" + getOldPrice(c));
-                });
-    }
-
-    @Override
-    public String getUrl(WebElement e) {
-        List<WebElement> elements = e.findElements(By.className(nameInCardBy));
-        return (!elements.isEmpty() ? "https://shop.metro.ua"+elements.getFirst().getDomAttribute("href") : null);
     }
 
     public List<MetroItem> getItemsList(){

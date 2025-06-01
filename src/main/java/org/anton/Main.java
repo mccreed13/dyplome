@@ -36,9 +36,46 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException, SQLException, ClassNotFoundException {
-        SilpoSelenium selenium = new SilpoSelenium(SilpoUrls.url_syhari_panirovochni);
-        updateAllPrices(selenium.getItemsList());
-//        selenium.close();
+        SilpoSelenium silpoSelenium = null;
+        for(String url : SilpoUrls.getAllUrls()){
+            if(silpoSelenium == null){
+                silpoSelenium = new SilpoSelenium(url);
+            }else {
+                silpoSelenium.goUrl(url);
+            }
+            List<SilpoItem> itemsList = silpoSelenium.getItemsList();
+            insertAllItems(itemsList);
+            updateAllPrices(itemsList);
+        }
+        if (silpoSelenium != null) {
+            silpoSelenium.close();
+        }
+
+        MetroSelenium metroSelenium = null;
+        for(String url : MetroUrls.getAllUrls()){
+            if(metroSelenium == null){
+                metroSelenium = new MetroSelenium(url);
+            }else {
+                metroSelenium.goUrl(url);
+            }
+            List<MetroItem> itemsList = metroSelenium.getItemsList();
+            insertAllItems(itemsList);
+            updateAllPrices(itemsList);
+        }
+        if(metroSelenium != null){
+            metroSelenium.close();
+        }
+        ATBRequester atbRequester = null;
+        for(String url : ATBUrls.getAllUrls()){
+            if(atbRequester == null){
+                atbRequester = new ATBRequester(url);
+            }else {
+                atbRequester.goUrl(url);
+            }
+            List<ATBItem> itemsList = atbRequester.getItemsList();
+            insertAllItems(itemsList);
+            updateAllPrices(itemsList);
+        }
         connection.close();
     }
 

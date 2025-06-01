@@ -29,4 +29,6 @@ abstract class SeleniumParser implements AutoCloseable {
     }
 
     public abstract String getUrl(WebElement e);
+
+    public abstract void goUrl(String url);
 }

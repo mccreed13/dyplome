@@ -34,9 +34,8 @@ public class UpdatePriceService {
     private final String SQL_SELECT_ALL = "select * from shop_products";
 
     private final String SQL_CHECK_UNITS = """
-            select units.name from units where id = 
-            (select units from products where id = 
-            (select general_product_id from shop_general_products where shop_product_id = ?));                                        
+            select units.name from units where id =
+            (select units from products where id = ?);
             """;
 
     private final Connection conn;
@@ -160,7 +159,6 @@ public class UpdatePriceService {
         select.setString(1, url);
         ResultSet rs = select.executeQuery();
         rs.next();
-        Integer product_id = rs.getInt("general_product_id");
-        return product_id;
+        return rs.getInt("general_product_id");
     }
 }
